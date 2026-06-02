@@ -47,12 +47,19 @@ def _safe_numeric_conversion(df: pd.DataFrame) -> pd.DataFrame:
         if hasattr(df[col].dtype, 'name') and 'string' in str(df[col].dtype).lower():
             df[col] = pd.to_numeric(df[col], errors='coerce')
         # Try to convert other non-numeric types
-        elif not np.issubdtype(df[col].dtype, np.number):
+        elif not _is_numeric_dtype_safe(df[col].dtype):
             try:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
             except (TypeError, ValueError):
                 pass
     return df
+
+
+def _is_numeric_dtype_safe(dtype) -> bool:
+    try:
+        return pd.api.types.is_numeric_dtype(dtype)
+    except Exception:
+        return False
 
 
 @st.cache_data
@@ -156,7 +163,7 @@ def _merge_production_features(df: pd.DataFrame, commodity_info: Dict) -> pd.Dat
         suffixes=('', '_prod'),
     )
 
-    numeric_cols = [col for col in merged.columns if col not in ['Tanggal', 'Komoditi', commodity_info['target_column'], 'quarter_start'] and np.issubdtype(merged[col].dtype, np.number)]
+    numeric_cols = [col for col in merged.columns if col not in ['Tanggal', 'Komoditi', commodity_info['target_column'], 'quarter_start'] and _is_numeric_dtype_safe(merged[col].dtype)]
     merged[numeric_cols] = merged[numeric_cols].ffill().fillna(0.0)
     # Ensure numeric conversion after merge to avoid StringDtype issues
     merged = _safe_numeric_conversion(merged)
@@ -207,7 +214,7 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
             col for col in feature_df.columns
             if col not in ['Tanggal', 'Komoditi', commodity_info['target_column'], 'quarter_start']
             and col not in temporal_cols
-            and np.issubdtype(feature_df[col].dtype, np.number)
+            and _is_numeric_dtype_safe(feature_df[col].dtype)
         ]
         feature_cols.extend(sorted(extra_cols))
 
@@ -293,7 +300,7 @@ def _forecast_exogenous_row(date: pd.Timestamp, payload: Dict) -> Dict[str, floa
         col: float(row[col])
         for col in production.columns
         if col not in [payload['production_key'], payload['quarter_col'], 'Komoditi', 'Komoditi_Harga']
-        and np.issubdtype(row[col].dtype, np.number)
+        and _is_numeric_dtype_safe(row[col].dtype)
     }
     return output
 
