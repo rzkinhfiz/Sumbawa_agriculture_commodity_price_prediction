@@ -7,36 +7,24 @@ st.markdown(
 
 st.markdown('**Fitur utama:**')
 st.markdown(
-    '- Pilihan komoditas: Beras Premium, Beras Medium, Jagung Pipil Kering, dan Kacang Hijau.  
-'
-    '- Pilihan model: Univariate dan Multivariate.  
-'
-    '- Grafik historis harga dan forecast dengan rentang prediksi.  
-'
-    '- Metrik evaluasi model dan rekomendasi otomatis.  
-'
-    '- Desain glassmorphism untuk tampilan modern.  
-'
+    '- Pilihan komoditas: Beras Premium, Beras Medium, Jagung Pipil Kering, dan Kacang Hijau.\n'
+    '- Pilihan model: Univariate dan Multivariate.\n'
+    '- Grafik historis harga dan forecast dengan rentang prediksi.\n'
+    '- Metrik evaluasi model dan rekomendasi otomatis.\n'
+    '- Desain glassmorphism untuk tampilan modern.'
 )
 
 st.subheader('Sumber Data')
 st.markdown(
-    '- Data harga bersih: `data/processed/price_cleaned.csv`  
-'
-    '- Data produktivitas: `data/processed/production_transformed.csv`  
-'
-    '- Model checkpoint terbaik: `models/best/`  
-'
+    '- Data harga bersih: `data/processed/price_cleaned.csv`\n'
+    '- Data produktivitas: `data/processed/production_transformed.csv`\n'
+    '- Model checkpoint terbaik: `models/best/`'
 )
 
 st.subheader('Panduan Penggunaan')
 st.markdown(
-    '1. Pilih komoditas.  
-'
-    '2. Pilih jenis model.  
-'
-    '3. Pilih horizon prediksi atau input custom.  
-'
-    '4. Tambahkan produksi tambahan untuk melihat dampak pada prediksi.  
-'
-')
+    '1. Pilih komoditas.'  
+    '2. Pilih jenis model.'  
+    '3. Pilih horizon prediksi atau input custom.'  
+    '4. Tambahkan produksi tambahan untuk melihat dampak pada prediksi.'  
+)
