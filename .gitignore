@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+
+# Data
+# Keep processed data needed for deployment in repo if the app requires it.
+# Remove this line only if data/processed is managed externally.
+# data/processed/
+reports/figures/
+
+# Model artifacts
+# Ignore local training checkpoints, but keep best deployment models under models/best/.
+models/*.pth
+models/*.pt
+models/checkpoints/
+!models/best/
+!models/best/*.pth
+
+# Streamlit
+streamlit_app/.streamlit/*
+!streamlit_app/.streamlit/config.toml
+streamlit_app/.streamlit/secrets.toml
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+.idea/
+.vscode/

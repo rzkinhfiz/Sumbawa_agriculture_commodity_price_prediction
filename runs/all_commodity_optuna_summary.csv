@@ -1,0 +1,5 @@
+commodity,mode,epochs,mae,rmse,mape,smape,directional_acc,source
+Beras Medium,multivariate,60,132.451,133.582,1.06,1.065,0.0,optuna_final
+Beras Premium,multivariate,60,288.05,289.055,2.216,2.191,0.0,optuna_final
+Jagung Pipil Kering,multivariate,60,78.811,80.286,2.021,2.0,0.0,optuna_final
+Kacang Hijau,multivariate,60,3.191,3.26,0.025,0.025,0.0,optuna_final

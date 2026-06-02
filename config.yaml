@@ -1,0 +1,79 @@
+project:
+  name: "Prediksi Harga Komoditas Pertanian Kabupaten Sumbawa"
+  region: "Kabupaten Sumbawa"
+  forecast_horizon: 14
+  frequency: "daily"
+  seed: 42
+
+data:
+  raw_path: "data/raw"
+  processed_path: "data/processed"
+  external_path: "data/external"
+  combined_price_file: "data/raw/DATASET HARGA KOMODITI.csv"
+  productivity_file: "data/raw/produksi.csv"
+
+commodities:
+  - code: "beras_premium"
+    name: "Beras Premium"
+    target_column: "Harga Petani"
+    series_id: "Beras Premium"
+  - code: "beras_medium"
+    name: "Beras Medium"
+    target_column: "Harga Petani"
+    series_id: "Beras Medium"
+  - code: "jagung_pipil_kering"
+    name: "Jagung Pipil Kering"
+    target_column: "Harga Petani"
+    series_id: "Jagung Pipil Kering"
+  - code: "kacang_hijau"
+    name: "Kacang Hijau"
+    target_column: "Harga Petani"
+    series_id: "Kacang Hijau"
+
+model:
+  univariate:
+    sequence_length: 28
+    hidden_size: 64
+    num_layers: 2
+    dropout: 0.2
+    learning_rate: 0.001
+    batch_size: 64
+    epochs: 60
+    optimizer: "adam"
+  multivariate:
+    sequence_length: 28
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.25
+    learning_rate: 0.0008
+    batch_size: 64
+    epochs: 70
+    optimizer: "adam"
+
+training:
+  cv_splits: 5
+  validation_ratio: 0.2
+  test_ratio: 0.2
+  metrics:
+    - mae
+    - rmse
+    - mape
+    - smape
+    - directional_accuracy
+  use_cuda: true
+
+features:
+  exogenous:
+    - productivity
+    - lag_1
+    - lag_7
+    - lag_14
+    - season_sin
+    - season_cos
+    - holiday_flag
+
+preprocessing:
+  missing_value_strategy: "ffill"
+  scaler: "standard"
+  timestamp_col: "Tanggal"
+  target_col: "Harga Petani"

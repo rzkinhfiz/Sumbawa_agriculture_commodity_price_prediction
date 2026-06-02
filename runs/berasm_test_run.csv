@@ -1,0 +1,2 @@
+commodity,mode,epochs,mae,rmse,mape,smape,directional_acc
+Beras Medium,multivariate,60,65.598,66.281,0.525,0.523,0.000

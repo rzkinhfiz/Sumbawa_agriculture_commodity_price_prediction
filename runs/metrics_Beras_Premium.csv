@@ -1,0 +1,9 @@
+commodity,mode,epochs,mae,rmse,mape,smape,directional_acc
+Beras Premium,univariate,60,319.854,320.032,2.460,2.430,0.000
+Beras Premium,multivariate,60,494.515,494.543,3.804,3.733,0.000
+Beras Premium,univariate,60,244.661,244.789,1.882,1.864,0.000
+Beras Premium,multivariate,60,745.200,745.202,5.732,5.573,0.000
+Beras Premium,univariate,60,118.314,118.418,0.910,0.906,0.000
+Beras Premium,multivariate,60,700.446,700.475,5.388,5.247,0.000
+Beras Premium,univariate,60,139.256,139.532,1.071,1.065,0.000
+Beras Premium,multivariate,60,434.223,434.468,3.340,3.285,0.000

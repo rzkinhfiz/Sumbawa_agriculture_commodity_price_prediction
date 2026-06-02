@@ -1,0 +1,9 @@
+commodity,mode,epochs,mae,rmse,mape,smape,directional_acc
+Beras Premium,univariate,60,178.209,178.341,1.371,1.361,0.000
+Beras Premium,multivariate,60,496.926,497.099,3.823,3.751,0.000
+Beras Medium,univariate,60,18.631,20.735,0.149,0.149,0.000
+Beras Medium,multivariate,60,10.473,13.122,0.084,0.084,0.000
+Jagung Pipil Kering,univariate,60,108.740,109.394,2.788,2.828,0.000
+Jagung Pipil Kering,multivariate,60,202.219,202.856,5.185,5.053,0.000
+Kacang Hijau,univariate,60,3.955,4.820,0.030,0.030,0.000
+Kacang Hijau,multivariate,60,5.095,5.310,0.039,0.039,0.000

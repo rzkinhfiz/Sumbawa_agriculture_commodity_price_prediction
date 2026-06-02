@@ -1,0 +1,2 @@
+commodity,epochs,mae,rmse,mape,smape,directional_acc
+Beras Medium,2,225.494,300.567,2.099,2.097,3.205

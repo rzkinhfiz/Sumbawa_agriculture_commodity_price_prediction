@@ -1,0 +1,3 @@
+commodity,mode,epochs,mae,rmse,mape,smape,directional_acc
+Jagung Pipil Kering,univariate,60,91.250,93.407,2.340,2.369,0.000
+Jagung Pipil Kering,multivariate,60,117.196,118.027,3.005,2.960,0.000

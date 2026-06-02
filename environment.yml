@@ -1,0 +1,33 @@
+name: rapids-24.10
+channels:
+  - rapidsai
+  - nvidia
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.12.7
+  - cudatoolkit=12.1
+  - pytorch=2.1
+  - pytorch-cuda=12.1
+  - torchvision=0.15
+  - torchaudio=2.1
+  - cudf=24.10
+  - cuml=24.10
+  - cupy=12.1
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - plotly
+  - optuna
+  - pyyaml
+  - jupyterlab
+  - ipykernel
+  - notebook
+  - tqdm
+  - pip
+  - pip:
+    - rich
+    - tensorboard
+    - scikit-optimize

@@ -1,0 +1,4 @@
+commodity,epochs,mae,rmse,mape,smape,directional_acc
+Beras Premium,60,37.376,63.484,0.302,0.302,0.840
+Jagung Pipil Kering,60,42.183,62.793,0.979,0.973,4.487
+Kacang Hijau,60,16.079,162.409,0.121,0.114,0.000

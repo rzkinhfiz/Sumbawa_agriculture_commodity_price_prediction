@@ -1,0 +1,5 @@
+commodity,mode,mae,src,dest
+Beras Medium,multivariate,44.176,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/runs/Beras_Medium/multivariate/lstm_Beras_Medium_multivariate.pth,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/models/best/Beras_Medium_multivariate_mae44.176.pth
+Beras Premium,univariate,183.995,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/runs/Beras_Premium/univariate/lstm_Beras_Premium_univariate.pth,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/models/best/Beras_Premium_univariate_mae183.995.pth
+Jagung Pipil Kering,univariate,91.25,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/runs/Jagung_Pipil_Kering/univariate/lstm_Jagung_Pipil_Kering_univariate.pth,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/models/best/Jagung_Pipil_Kering_univariate_mae91.250.pth
+Kacang Hijau,multivariate,3.378,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/runs/Kacang_Hijau/multivariate/lstm_Kacang_Hijau_multivariate.pth,/home/rna_13/DataScienceProject/dsproject_agriculturepredict/models/best/Kacang_Hijau_multivariate_mae3.378.pth

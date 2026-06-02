@@ -1,0 +1,7 @@
+commodity,mode,epochs,mae,rmse,mape,smape,directional_acc
+Kacang Hijau,univariate,60,8.497,10.178,0.065,0.065,0.000
+Kacang Hijau,multivariate,60,5.028,6.067,0.039,0.039,0.000
+Kacang Hijau,univariate,60,11.149,11.421,0.086,0.086,0.000
+Kacang Hijau,multivariate,60,4.596,4.813,0.035,0.035,0.000
+Kacang Hijau,univariate,60,1.933,2.164,0.015,0.015,0.000
+Kacang Hijau,multivariate,60,5.206,5.315,0.040,0.040,0.000
