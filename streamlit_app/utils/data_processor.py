@@ -213,15 +213,18 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
             production_df = None
 
     feature_cols = temporal_cols[:]
+    feature_matrix_cols = feature_cols[:]
     if mode.lower() == 'multivariate':
         # Match training data selection: include all numeric merged columns except metadata columns.
-        # The training pipeline also duplicated engineered temporal columns in the feature set.
         extra_cols = [
             col for col in feature_df.columns
             if col not in ['Tanggal', 'Komoditi', commodity_info['target_column'], 'quarter_start']
             and _is_numeric_dtype_safe(feature_df[col].dtype)
         ]
-        feature_cols.extend(sorted(extra_cols))
+        for col in sorted(extra_cols):
+            feature_matrix_cols.append(col)
+            if col not in feature_cols:
+                feature_cols.append(col)
 
     feature_df = feature_df[['Tanggal', 'Komoditi'] + feature_cols].copy()
     feature_df = feature_df.dropna().reset_index(drop=True)
@@ -229,7 +232,7 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
     # Safe conversion to numeric
     feature_df_numeric = _safe_numeric_conversion(feature_df)
 
-    feature_matrix = feature_df_numeric[feature_cols].astype(float).to_numpy()
+    feature_matrix = feature_df_numeric[feature_matrix_cols].astype(float).to_numpy()
     target_array = feature_df_numeric[commodity_info['target_column']].astype(float).to_numpy()
 
     scaler_x = StandardScaler().fit(feature_matrix)
@@ -251,8 +254,9 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
         'history': history,
         'feature_df': feature_df,
         'feature_cols': feature_cols,
+        'feature_matrix_cols': feature_matrix_cols,
         'seq_len': seq_len,
-        'input_size': len(feature_cols),
+        'input_size': len(feature_matrix_cols),
         'scaler_x': scaler_x,
         'scaler_y': scaler_y,
         'target_col': commodity_info['target_column'],
@@ -315,6 +319,7 @@ def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 
     # Ensure numeric conversion
     data = _safe_numeric_conversion(data)
     feature_cols = payload['feature_cols']
+    feature_matrix_cols = payload.get('feature_matrix_cols', payload['feature_cols'])
     seq_len = payload['seq_len']
     scaler_x = payload['scaler_x']
     scaler_y = payload['scaler_y']
@@ -328,12 +333,13 @@ def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 
     last_date = data['Tanggal'].iloc[-1]
 
     for step in range(horizon):
-        sequence = data[feature_cols].iloc[-seq_len:].astype(float).to_numpy()
+        sequence = data[feature_matrix_cols].iloc[-seq_len:].astype(float).to_numpy()
         scaled_seq = scaler_x.transform(sequence)
         input_tensor = np.expand_dims(scaled_seq, axis=0)
 
         with torch.no_grad():
-            input_tensor = torch.tensor(input_tensor, dtype=torch.float32)
+            device = next(model.parameters()).device
+            input_tensor = torch.tensor(input_tensor, dtype=torch.float32, device=device)
             output = model(input_tensor).cpu().numpy().ravel()
 
         predicted_scaled = float(output[0])
@@ -395,7 +401,7 @@ def _mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def evaluate_model(model, payload: Dict, max_points: int = 200) -> Dict[str, float]:
     feature_df_numeric = _safe_numeric_conversion(payload['feature_df'])
-    feature_matrix = feature_df_numeric[payload['feature_cols']].astype(float).to_numpy()
+    feature_matrix = feature_df_numeric[payload.get('feature_matrix_cols', payload['feature_cols'])].astype(float).to_numpy()
     target_values = feature_df_numeric[payload['target_col']].astype(float).to_numpy()
     seq_len = payload['seq_len']
     scaler_x = payload['scaler_x']
@@ -411,7 +417,8 @@ def evaluate_model(model, payload: Dict, max_points: int = 200) -> Dict[str, flo
     scaled_sequences = scaler_x.transform(sequences.reshape(-1, payload['input_size'])).reshape(-1, seq_len, payload['input_size'])
 
     with torch.no_grad():
-        input_tensor = torch.tensor(scaled_sequences, dtype=torch.float32)
+        device = next(model.parameters()).device
+        input_tensor = torch.tensor(scaled_sequences, dtype=torch.float32, device=device)
         outputs = model(input_tensor).cpu().numpy().ravel()
 
     predicted = scaler_y.inverse_transform(outputs.reshape(-1, 1)).ravel()
