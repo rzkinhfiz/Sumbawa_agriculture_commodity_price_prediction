@@ -114,6 +114,8 @@ def _guess_production_columns(prod: pd.DataFrame) -> Dict[str, str]:
 def _merge_production_features(df: pd.DataFrame, commodity_info: Dict) -> pd.DataFrame:
     prod = pd.read_csv(PRODUCTION_PATH)
     prod = _normalize_column_names(prod)
+    # Apply safe numeric conversion to production data immediately after load
+    prod = _safe_numeric_conversion(prod)
     prod_cols = _guess_production_columns(prod)
     commodity_key = prod_cols['commodity_col']
     quarter_col = prod_cols['quarter_col']
@@ -176,6 +178,8 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
             feature_df = _safe_numeric_conversion(feature_df)
             prod = pd.read_csv(PRODUCTION_PATH)
             prod = _normalize_column_names(prod)
+            # Apply safe numeric conversion to production data immediately after load
+            prod = _safe_numeric_conversion(prod)
             prod_cols = _guess_production_columns(prod)
             production_df = prod
             production_key = prod_cols['commodity_col']
@@ -213,6 +217,10 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
 
     history = feature_df[['Tanggal', commodity_info['target_column']]].rename(columns={commodity_info['target_column']: 'target'})
 
+    # Ensure production_df is safe before storing in payload
+    if production_df is not None:
+        production_df = _safe_numeric_conversion(production_df)
+
     return {
         'history': history,
         'feature_df': feature_df,
@@ -238,9 +246,10 @@ def _forecast_exogenous_row(date: pd.Timestamp, payload: Dict) -> Dict[str, floa
         return {}
 
     quarter_start = date.to_period('Q').to_timestamp()
-    production = payload['production_df']
+    production = payload['production_df'].copy()
+    # Ensure numeric safety after copying
+    production = _safe_numeric_conversion(production)
     commodity_name = payload['commodity_info']['series_id']
-    production = production.copy()
     production[payload['production_key']] = production[payload['production_key']].astype(str).str.strip()
 
     if payload['production_key'].lower() == 'komoditi_harga':
@@ -251,6 +260,9 @@ def _forecast_exogenous_row(date: pd.Timestamp, payload: Dict) -> Dict[str, floa
     production = production[match_mask]
     if production.empty:
         return {}
+    
+    # Ensure numeric safety after filtering
+    production = _safe_numeric_conversion(production)
 
     production[payload['quarter_col']] = pd.to_datetime(production[payload['quarter_col']], errors='coerce')
     exact_match = production[production[payload['quarter_col']] == quarter_start]
