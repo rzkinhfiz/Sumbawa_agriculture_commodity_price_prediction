@@ -36,23 +36,24 @@ def _safe_numeric_conversion(df: pd.DataFrame) -> pd.DataFrame:
     skip_cols = {'Tanggal', 'Komoditi', 'quarter_start'}
     
     # Convert StringDtype to regular object, then to numeric
-    for col in df.columns:
+    for idx, col in enumerate(df.columns):
         if col in skip_cols:
             continue
+        col_series = df.iloc[:, idx]
         # Check if it's already a datetime
-        if pd.api.types.is_datetime64_any_dtype(df[col]):
+        if pd.api.types.is_datetime64_any_dtype(col_series):
             continue
         
         # Try to convert StringDtype or other non-numeric types only when numeric values are present
-        if hasattr(df[col].dtype, 'name') and 'string' in str(df[col].dtype).lower():
-            converted = pd.to_numeric(df[col], errors='coerce')
+        if hasattr(col_series.dtype, 'name') and 'string' in str(col_series.dtype).lower():
+            converted = pd.to_numeric(col_series, errors='coerce')
             if converted.notna().any():
-                df[col] = converted
-        elif not _is_numeric_dtype_safe(df[col].dtype):
+                df.iloc[:, idx] = converted
+        elif not _is_numeric_dtype_safe(col_series.dtype):
             try:
-                converted = pd.to_numeric(df[col], errors='coerce')
+                converted = pd.to_numeric(col_series, errors='coerce')
                 if converted.notna().any():
-                    df[col] = converted
+                    df.iloc[:, idx] = converted
             except (TypeError, ValueError):
                 pass
     return df
@@ -213,10 +214,11 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
 
     feature_cols = temporal_cols[:]
     if mode.lower() == 'multivariate':
+        # Match training data selection: include all numeric merged columns except metadata columns.
+        # The training pipeline also duplicated engineered temporal columns in the feature set.
         extra_cols = [
             col for col in feature_df.columns
             if col not in ['Tanggal', 'Komoditi', commodity_info['target_column'], 'quarter_start']
-            and col not in temporal_cols
             and _is_numeric_dtype_safe(feature_df[col].dtype)
         ]
         feature_cols.extend(sorted(extra_cols))
