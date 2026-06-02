@@ -15,6 +15,21 @@ PRICE_PATH = REPO_ROOT / 'data' / 'processed' / 'price_cleaned.csv'
 PRODUCTION_PATH = REPO_ROOT / 'data' / 'processed' / 'production_transformed.csv'
 
 
+def _safe_numeric_conversion(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert DataFrame columns to numeric types, handling StringDtype."""
+    df = df.copy()
+    # Convert StringDtype to regular object, then to numeric
+    for col in df.columns:
+        if hasattr(df[col].dtype, 'name') and 'string' in str(df[col].dtype).lower():
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        elif not np.issubdtype(df[col].dtype, np.number):
+            try:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+            except (TypeError, ValueError):
+                pass
+    return df
+
+
 @st.cache_data
 def load_config() -> Dict:
     import yaml
@@ -160,9 +175,12 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
 
     feature_df = feature_df[['Tanggal', 'Komoditi'] + feature_cols].copy()
     feature_df = feature_df.dropna().reset_index(drop=True)
+    
+    # Safe conversion to numeric
+    feature_df_numeric = _safe_numeric_conversion(feature_df)
 
-    feature_matrix = feature_df[feature_cols].astype(float).to_numpy()
-    target_array = feature_df[commodity_info['target_column']].astype(float).to_numpy()
+    feature_matrix = feature_df_numeric[feature_cols].astype(float).to_numpy()
+    target_array = feature_df_numeric[commodity_info['target_column']].astype(float).to_numpy()
 
     scaler_x = StandardScaler().fit(feature_matrix)
     scaler_y = StandardScaler().fit(target_array.reshape(-1, 1))
@@ -236,6 +254,8 @@ def _forecast_exogenous_row(date: pd.Timestamp, payload: Dict) -> Dict[str, floa
 
 def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 0.0):
     data = payload['feature_df'].copy()
+    # Ensure numeric conversion
+    data = _safe_numeric_conversion(data)
     feature_cols = payload['feature_cols']
     seq_len = payload['seq_len']
     scaler_x = payload['scaler_x']
@@ -316,8 +336,9 @@ def _mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 
 def evaluate_model(model, payload: Dict, max_points: int = 200) -> Dict[str, float]:
-    feature_matrix = payload['feature_df'][payload['feature_cols']].astype(float).to_numpy()
-    target_values = payload['feature_df'][payload['target_col']].astype(float).to_numpy()
+    feature_df_numeric = _safe_numeric_conversion(payload['feature_df'])
+    feature_matrix = feature_df_numeric[payload['feature_cols']].astype(float).to_numpy()
+    target_values = feature_df_numeric[payload['target_col']].astype(float).to_numpy()
     seq_len = payload['seq_len']
     scaler_x = payload['scaler_x']
     scaler_y = payload['scaler_y']
