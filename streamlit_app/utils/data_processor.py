@@ -43,13 +43,16 @@ def _safe_numeric_conversion(df: pd.DataFrame) -> pd.DataFrame:
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             continue
         
-        # Try to convert StringDtype
+        # Try to convert StringDtype or other non-numeric types only when numeric values are present
         if hasattr(df[col].dtype, 'name') and 'string' in str(df[col].dtype).lower():
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-        # Try to convert other non-numeric types
+            converted = pd.to_numeric(df[col], errors='coerce')
+            if converted.notna().any():
+                df[col] = converted
         elif not _is_numeric_dtype_safe(df[col].dtype):
             try:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
+                converted = pd.to_numeric(df[col], errors='coerce')
+                if converted.notna().any():
+                    df[col] = converted
             except (TypeError, ValueError):
                 pass
     return df
