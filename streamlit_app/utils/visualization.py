@@ -2,6 +2,15 @@ import plotly.graph_objects as go
 
 
 def build_line_chart(history, forecast, lower, upper, title='Harga Historis dan Prediksi'):
+    """Build interactive line chart with confidence intervals.
+    
+    Automatically adjusts display based on forecast horizon:
+    - Short forecasts (≤90 days): daily granularity
+    - Medium forecasts (90-180 days): weekly markers
+    - Long forecasts (>180 days): monthly markers
+    """
+    forecast_days = len(forecast)
+    
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -43,6 +52,18 @@ def build_line_chart(history, forecast, lower, upper, title='Harga Historis dan 
             showlegend=False,
         )
     )
+    
+    # Adjust x-axis tick format based on forecast horizon
+    if forecast_days <= 90:
+        tick_format = '%Y-%m-%d'
+        tick_mode = 'auto'
+    elif forecast_days <= 180:
+        tick_format = '%Y-%m-%d'
+        tick_mode = 'linear'
+    else:
+        tick_format = '%Y-%m'
+        tick_mode = 'linear'
+    
     fig.update_layout(
         title=title,
         xaxis_title='Tanggal',
@@ -52,7 +73,13 @@ def build_line_chart(history, forecast, lower, upper, title='Harga Historis dan 
         font=dict(color='#eef5ff'),
         legend=dict(bgcolor='rgba(255,255,255,0.04)', bordercolor='rgba(255,255,255,0.12)'),
         margin=dict(t=40, b=20, l=20, r=20),
+        hovermode='x unified',
     )
-    fig.update_xaxes(showgrid=False)
+    
+    fig.update_xaxes(
+        showgrid=False,
+        tickformat=tick_format,
+        tickmode=tick_mode,
+    )
     fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.08)')
     return fig

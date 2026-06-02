@@ -315,6 +315,20 @@ def _forecast_exogenous_row(date: pd.Timestamp, payload: Dict) -> Dict[str, floa
 
 
 def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 0.0):
+    """
+    Create iterative forecast with adaptive confidence intervals for long horizons.
+    
+    Args:
+        model: Trained LSTM model
+        payload: Dataset payload with features and scalers
+        horizon: Forecast horizon in days (max 365)
+        manual_feature: Optional manual adjustment (for production features)
+    
+    Returns:
+        forecast_frame: DataFrame with dates and mean predictions
+        lower: Lower confidence bounds
+        upper: Upper confidence bounds
+    """
     data = payload['feature_df'].copy()
     # Ensure numeric conversion
     data = _safe_numeric_conversion(data)
@@ -331,6 +345,9 @@ def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 
     predictions = []
     forecast_dates = []
     last_date = data['Tanggal'].iloc[-1]
+    
+    # For long horizons, store prediction confidence (increases as horizon extends)
+    step_confidence_multiplier = 1.0 + (min(horizon, 365) / 365.0 * 0.5)  # 1.0-1.5x multiplier
 
     for step in range(horizon):
         sequence = data[feature_matrix_cols].iloc[-seq_len:].astype(float).to_numpy()
@@ -380,7 +397,22 @@ def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 
         adjustment = np.tanh(float(manual_feature) / 1000.0) * 0.03
         predictions = predictions * (1.0 + adjustment)
 
-    width = np.maximum(np.abs(predictions) * 0.06, 50.0)
+    # Adaptive confidence interval width based on forecast horizon
+    # Long-term forecasts get wider confidence bands
+    base_width = np.maximum(np.abs(predictions) * 0.06, 50.0)
+    
+    # Increase confidence band width for longer horizons (beyond 90 days)
+    # Step 0-90: use base width
+    # Step 90-180: increase linearly to 1.5x
+    # Step 180-365: increase to 2.0x
+    horizon_multipliers = np.array([
+        1.0 if i < 90 else 
+        1.0 + (i - 90) / 90 * 0.5 if i < 180 else
+        1.5 + (i - 180) / 185 * 0.5
+        for i in range(len(predictions))
+    ])
+    
+    width = base_width * horizon_multipliers
     lower = np.maximum(predictions - width, 0.0)
     upper = predictions + width
 

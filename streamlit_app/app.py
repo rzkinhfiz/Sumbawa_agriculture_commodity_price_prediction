@@ -28,11 +28,32 @@ with open(ROOT / 'assets' / 'css' / 'glassmorphism.css', 'r') as css_file:
 st.sidebar.title('Kontrol Prediksi')
 commodity = st.sidebar.selectbox('Pilih Komoditas', get_commodity_names())
 model_mode = st.sidebar.radio('Pilih Model', ['Univariate', 'Multivariate'])
-horizon_option = st.sidebar.selectbox('Horizon Prediksi', [7, 14, 30, 'Custom'])
-if horizon_option == 'Custom':
-    horizon = st.sidebar.number_input('Hari ke Depan', min_value=1, max_value=90, value=30)
+
+horizon_preset = st.sidebar.selectbox(
+    'Horizon Prediksi',
+    options=['7 Hari', '14 Hari', '30 Hari', '90 Hari', '180 Hari', '365 Hari', 'Custom'],
+    index=2,
+)
+
+if horizon_preset == 'Custom':
+    horizon = st.sidebar.number_input('Hari ke Depan', min_value=1, max_value=365, value=30)
 else:
-    horizon = int(horizon_option)
+    preset_map = {
+        '7 Hari': 7,
+        '14 Hari': 14,
+        '30 Hari': 30,
+        '90 Hari': 90,
+        '180 Hari': 180,
+        '365 Hari': 365,
+    }
+    horizon = preset_map[horizon_preset]
+
+if horizon > 90:
+    st.sidebar.warning(
+        '⚠️ **Prediksi Jangka Panjang**: Horizon > 90 hari bersifat indikatif. '
+        'Akurasi LSTM cenderung menurun untuk periode yang lebih jauh. '
+        'Gunakan hasil ini sebagai panduan umum, bukan acuan definitif.'
+    )
 
 st.sidebar.markdown('---')
 st.sidebar.write('Input manual (opsional)')

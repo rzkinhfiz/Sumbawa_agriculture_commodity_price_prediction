@@ -20,7 +20,34 @@ st.header('Dashboard Harga Historis dan Forecast')
 
 commodity = st.selectbox('Pilih Komoditas', get_commodity_names())
 model_mode = st.radio('Model', ['Univariate', 'Multivariate'])
-forecast_horizon = st.selectbox('Horizon Prediksi', [7, 14, 30, 60])
+
+col1, col2 = st.columns([2, 1])
+with col1:
+    horizon_preset = st.selectbox(
+        'Horizon Prediksi',
+        options=['30 Hari', '90 Hari', '180 Hari', '365 Hari', 'Custom'],
+        index=1,
+    )
+
+with col2:
+    if horizon_preset == 'Custom':
+        forecast_horizon = st.number_input('Hari', min_value=1, max_value=365, value=30)
+    else:
+        preset_map = {
+            '30 Hari': 30,
+            '90 Hari': 90,
+            '180 Hari': 180,
+            '365 Hari': 365,
+        }
+        forecast_horizon = preset_map[horizon_preset]
+
+if forecast_horizon > 90:
+    st.warning(
+        '⚠️ **Prediksi Jangka Panjang**: Horizon > 90 hari bersifat indikatif. '
+        'Akurasi LSTM cenderung menurun untuk periode yang lebih jauh. '
+        'Gunakan hasil ini sebagai panduan umum, bukan acuan definitif.'
+    )
+
 manual_feature = st.number_input('Produksi tambahan (ton)', min_value=0.0, value=0.0, step=0.1)
 
 try:
