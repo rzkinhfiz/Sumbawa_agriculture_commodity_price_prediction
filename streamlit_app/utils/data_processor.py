@@ -18,10 +18,21 @@ PRODUCTION_PATH = REPO_ROOT / 'data' / 'processed' / 'production_transformed.csv
 def _safe_numeric_conversion(df: pd.DataFrame) -> pd.DataFrame:
     """Convert DataFrame columns to numeric types, handling StringDtype."""
     df = df.copy()
+    # Skip columns that shouldn't be converted
+    skip_cols = {'Tanggal', 'Komoditi', 'quarter_start'}
+    
     # Convert StringDtype to regular object, then to numeric
     for col in df.columns:
+        if col in skip_cols:
+            continue
+        # Check if it's already a datetime
+        if pd.api.types.is_datetime64_any_dtype(df[col]):
+            continue
+        
+        # Try to convert StringDtype
         if hasattr(df[col].dtype, 'name') and 'string' in str(df[col].dtype).lower():
             df[col] = pd.to_numeric(df[col], errors='coerce')
+        # Try to convert other non-numeric types
         elif not np.issubdtype(df[col].dtype, np.number):
             try:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -43,6 +54,8 @@ def load_price_data() -> pd.DataFrame:
     df = pd.read_csv(PRICE_PATH, parse_dates=['Tanggal'])
     df.columns = df.columns.str.strip()
     df = df.sort_values(['Komoditi', 'Tanggal']).reset_index(drop=True)
+    # Ensure numeric conversion to avoid StringDtype issues
+    df = _safe_numeric_conversion(df)
     return df
 
 
@@ -129,6 +142,8 @@ def _merge_production_features(df: pd.DataFrame, commodity_info: Dict) -> pd.Dat
 
     numeric_cols = [col for col in merged.columns if col not in ['Tanggal', 'Komoditi', commodity_info['target_column'], 'quarter_start'] and np.issubdtype(merged[col].dtype, np.number)]
     merged[numeric_cols] = merged[numeric_cols].ffill().fillna(0.0)
+    # Ensure numeric conversion after merge to avoid StringDtype issues
+    merged = _safe_numeric_conversion(merged)
     return merged
 
 
@@ -142,7 +157,10 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
         raise ValueError(f'Tidak ada data untuk komoditas {commodity_name}')
 
     df = df.sort_values('Tanggal').reset_index(drop=True)
+    # Ensure numeric conversion early in the pipeline
+    df = _safe_numeric_conversion(df)
     df = add_time_series_features(df, commodity_info['target_column'])
+    df = _safe_numeric_conversion(df)
     df = df.dropna(subset=['lag_1', 'lag_7', 'lag_14']).reset_index(drop=True)
 
     temporal_cols = [commodity_info['target_column'], 'lag_1', 'lag_7', 'lag_14', 'season_sin', 'season_cos', 'holiday_flag']
@@ -154,6 +172,8 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
     if mode.lower() == 'multivariate':
         try:
             feature_df = _merge_production_features(feature_df, commodity_info)
+            # Ensure conversion after production merge
+            feature_df = _safe_numeric_conversion(feature_df)
             prod = pd.read_csv(PRODUCTION_PATH)
             prod = _normalize_column_names(prod)
             prod_cols = _guess_production_columns(prod)
