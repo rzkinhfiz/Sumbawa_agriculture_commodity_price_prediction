@@ -23,8 +23,8 @@ st.markdown(
 
 st.subheader('Panduan Penggunaan')
 st.markdown(
-    '1. Pilih komoditas.'  
-    '2. Pilih jenis model.'  
-    '3. Pilih horizon prediksi atau input custom.'  
+    '1. Pilih komoditas.\n'  
+    '2. Pilih jenis model.\n'  
+    '3. Pilih horizon prediksi atau input custom.\n'  
     '4. Tambahkan produksi tambahan untuk melihat dampak pada prediksi.'  
 )
