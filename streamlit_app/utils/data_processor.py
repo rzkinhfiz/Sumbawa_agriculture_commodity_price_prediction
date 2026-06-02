@@ -15,6 +15,20 @@ PRICE_PATH = REPO_ROOT / 'data' / 'processed' / 'price_cleaned.csv'
 PRODUCTION_PATH = REPO_ROOT / 'data' / 'processed' / 'production_transformed.csv'
 
 
+def _read_csv_safe(filepath: Path, **kwargs) -> pd.DataFrame:
+    """Read CSV and ensure no StringDtype columns remain."""
+    # Use dtype_backend to avoid StringDtype from the start
+    try:
+        df = pd.read_csv(filepath, dtype_backend='numpy', **kwargs)
+    except (TypeError, ValueError):
+        # Fallback if dtype_backend not supported
+        df = pd.read_csv(filepath, **kwargs)
+    
+    # Ensure all numeric columns are properly typed
+    df = _safe_numeric_conversion(df)
+    return df
+
+
 def _safe_numeric_conversion(df: pd.DataFrame) -> pd.DataFrame:
     """Convert DataFrame columns to numeric types, handling StringDtype."""
     df = df.copy()
@@ -51,7 +65,7 @@ def load_config() -> Dict:
 
 @st.cache_data
 def load_price_data() -> pd.DataFrame:
-    df = pd.read_csv(PRICE_PATH, parse_dates=['Tanggal'])
+    df = _read_csv_safe(PRICE_PATH, parse_dates=['Tanggal'])
     df.columns = df.columns.str.strip()
     df = df.sort_values(['Komoditi', 'Tanggal']).reset_index(drop=True)
     # Ensure numeric conversion to avoid StringDtype issues
@@ -112,7 +126,7 @@ def _guess_production_columns(prod: pd.DataFrame) -> Dict[str, str]:
 
 
 def _merge_production_features(df: pd.DataFrame, commodity_info: Dict) -> pd.DataFrame:
-    prod = pd.read_csv(PRODUCTION_PATH)
+    prod = _read_csv_safe(PRODUCTION_PATH)
     prod = _normalize_column_names(prod)
     # Apply safe numeric conversion to production data immediately after load
     prod = _safe_numeric_conversion(prod)
@@ -176,7 +190,7 @@ def prepare_commodity_dataset(commodity_name: str, mode: str) -> Dict:
             feature_df = _merge_production_features(feature_df, commodity_info)
             # Ensure conversion after production merge
             feature_df = _safe_numeric_conversion(feature_df)
-            prod = pd.read_csv(PRODUCTION_PATH)
+            prod = _read_csv_safe(PRODUCTION_PATH)
             prod = _normalize_column_names(prod)
             # Apply safe numeric conversion to production data immediately after load
             prod = _safe_numeric_conversion(prod)
