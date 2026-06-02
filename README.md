@@ -45,11 +45,12 @@ Strategi modeling mencakup:
 6. Deployment: rencana penerapan model untuk inferensi.
 
 ## Cara Menjalankan Proyek
-1. Aktifkan conda environment RAPIDS:
+1. Aktifkan conda environment RAPIDS untuk pengembangan lokal:
    ```bash
-   conda env create -f environment.yml
+   conda env create -f environment-local.yml
    conda activate rapids-24.10
    ```
+   > Untuk deploy Streamlit, repository akan menggunakan `requirements.txt` karena Streamlit Cloud akan memilih environment `requirements.txt` jika file `environment.yml` tidak ada.
 2. Periksa instalasi RAPIDS dan CUDA:
    ```bash
    python -c "import cudf, cupy, torch; print('RAPIDS', cudf.__version__, 'CuPy', cupy.__version__, 'Torch', torch.__version__)"
