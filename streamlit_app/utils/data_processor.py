@@ -339,7 +339,8 @@ def evaluate_model(model, payload: Dict, max_points: int = 200) -> Dict[str, flo
     actual = target_values[seq_len + start_index: seq_len + start_index + len(predicted)]
 
     mae = float(mean_absolute_error(actual, predicted))
-    rmse = float(mean_squared_error(actual, predicted, squared=False))
+    mse = mean_squared_error(actual, predicted)
+    rmse = float(np.sqrt(mse))
     mape = _mape(actual, predicted)
     smape = _smape(actual, predicted)
 
