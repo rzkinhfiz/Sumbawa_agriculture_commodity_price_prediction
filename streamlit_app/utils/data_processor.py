@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 import streamlit as st
+import torch
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 
@@ -254,8 +255,6 @@ def create_forecast(model, payload: Dict, horizon: int, manual_feature: float = 
         input_tensor = np.expand_dims(scaled_seq, axis=0)
 
         with torch.no_grad():
-            import torch
-
             input_tensor = torch.tensor(input_tensor, dtype=torch.float32)
             output = model(input_tensor).cpu().numpy().ravel()
 
@@ -331,8 +330,6 @@ def evaluate_model(model, payload: Dict, max_points: int = 200) -> Dict[str, flo
     indices = range(start_index, n_points)
     sequences = np.stack([feature_matrix[i:i + seq_len] for i in indices], axis=0)
     scaled_sequences = scaler_x.transform(sequences.reshape(-1, payload['input_size'])).reshape(-1, seq_len, payload['input_size'])
-
-    import torch
 
     with torch.no_grad():
         input_tensor = torch.tensor(scaled_sequences, dtype=torch.float32)
